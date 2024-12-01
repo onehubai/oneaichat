@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { CircularProgress } from "@mui/material";
 import { Send, Clear, Person, SmartToy } from "@mui/icons-material";
 import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
@@ -30,7 +29,7 @@ const ChatBot = () => {
         {
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer YOUR_OPENAI_API_KEY`,
+            Authorization: `Bearer ${process.env.REACT_APP_OPENAI_API_KEY}`,
           }
         }
       );

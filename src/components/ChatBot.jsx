@@ -1,158 +1,100 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { Send, Clear, Person, SmartToy } from "@mui/icons-material";
+import { Box, Button, Input, Paper, Typography, CircularProgress } from "@mui/material";
 import { motion } from "framer-motion";
-import ReactMarkdown from "react-markdown";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
+import Particles from "react-tsparticles";
+import { particlesOptions } from "./particlesOptions"; // separate particles config
 
 const ChatBot = () => {
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState("");
+  const [message, setMessage] = useState("");
+  const [chatHistory, setChatHistory] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const sendMessage = async () => {
-    if (!input.trim()) return;
+    if (!message.trim()) return;
 
-    const userMessage = { role: "user", content: input };
-    setMessages((prev) => [...prev, userMessage]);
-    setInput("");
     setLoading(true);
+    const newMessage = { type: "user", text: message };
+    setChatHistory([...chatHistory, newMessage]);
 
     try {
-      const response = await axios.post(
-        "https://api.openai.com/v1/chat/completions",
-        {
-          model: "gpt-3.5-turbo",
-          messages: [...messages, userMessage],
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${process.env.REACT_APP_OPENAI_API_KEY}`,
-          }
-        }
+      const response = await axios.get(
+        `https://chat.onedevai.workers.dev/?prompt=${encodeURIComponent(message)}`
       );
 
-      const botMessage = response.data.choices[0].message;
-      setMessages((prev) => [...prev, botMessage]);
+      const botReply = { type: "bot", text: response.data };
+      setChatHistory((prev) => [...prev, newMessage, botReply]);
+      setMessage(""); // Clear input
     } catch (error) {
-      console.error("Error:", error);
-      setMessages((prev) => [
+      setChatHistory((prev) => [
         ...prev,
-        { role: "system", content: "An error occurred. Please try again." },
+        { type: "bot", text: "Sorry, something went wrong." },
       ]);
     } finally {
       setLoading(false);
     }
   };
 
-  const clearChat = () => {
-    setMessages([]);
-  };
-
-  const renderMessageContent = (content) => (
-    <ReactMarkdown
-      children={content}
-      components={{
-        code({ node, inline, className, children, ...props }) {
-          const match = /language-(\w+)/.exec(className || "");
-          return !inline && match ? (
-            <SyntaxHighlighter
-              style={vscDarkPlus}
-              language={match[1]}
-              PreTag="div"
-              {...props}
-            >
-              {String(children).replace(/\n$/, "")}
-            </SyntaxHighlighter>
-          ) : (
-            <code className={className} {...props}>
-              {children}
-            </code>
-          );
-        },
-      }}
-    />
-  );
-
   return (
-    <div className="min-h-screen flex flex-col items-center bg-gradient-to-r from-blue-600 to-indigo-700">
-      {/* Header */}
-      <div className="text-white text-3xl font-bold mt-6 mb-4">AI Chatbot</div>
+    <Box sx={{ position: "relative", height: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+      {/* Particle background */}
+      <Particles options={particlesOptions} style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }} />
+      
+      <Paper sx={{ width: "90%", maxWidth: 600, padding: 3, marginBottom: 3, position: "relative", zIndex: 10 }}>
+        <Typography variant="h5" align="center" gutterBottom>
+          AI ChatBot
+        </Typography>
 
-      {/* Chat Container */}
-      <div className="bg-white w-full max-w-3xl rounded-lg shadow-lg flex flex-col overflow-hidden">
-        {/* Chat Messages */}
-        <div
-          className="flex-1 p-4 overflow-y-auto custom-scrollbar"
-          style={{ height: "65vh" }}
-        >
-          {messages.map((msg, index) => (
-            <motion.div
-              key={index}
-              className={`mb-4 flex ${
-                msg.role === "user" ? "justify-end" : "justify-start"
-              }`}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              <div
-                className={`p-3 rounded-lg shadow-md ${
-                  msg.role === "user"
-                    ? "bg-blue-500 text-white"
-                    : "bg-gray-200 text-black"
-                }`}
-                style={{ maxWidth: "70%" }}
+        <Box sx={{ maxHeight: "400px", overflowY: "auto", mb: 2, padding: 2, backgroundColor: "#f9f9f9", borderRadius: 2 }}>
+          {chatHistory.map((msg, index) => (
+            <motion.div key={index} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+              <Box
+                sx={{
+                  backgroundColor: msg.type === "user" ? "#d1e7dd" : "#f8d7da",
+                  padding: 2,
+                  borderRadius: 2,
+                  textAlign: msg.type === "user" ? "right" : "left",
+                  marginBottom: 2,
+                }}
               >
-                <div className="flex items-center">
-                  {msg.role === "user" ? (
-                    <Person className="mr-2" />
-                  ) : (
-                    <SmartToy className="mr-2" />
-                  )}
-                  <div>{renderMessageContent(msg.content)}</div>
-                </div>
-              </div>
+                {msg.text}
+              </Box>
             </motion.div>
           ))}
-          {loading && (
-            <motion.div
-              className="mb-4 flex justify-start"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              <div className="p-3 bg-gray-200 text-black rounded-lg shadow-md">
-                <span className="animate-pulse">AI is typing...</span>
-              </div>
-            </motion.div>
-          )}
-        </div>
+        </Box>
 
-        {/* Input and Actions */}
-        <div className="flex items-center p-4 bg-gray-100 border-t">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Type your message..."
-            className="flex-1 px-4 py-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-400 text-gray-700"
+        <Box sx={{ display: "flex", gap: 2 }}>
+          <Input
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="Type a message..."
+            fullWidth
+            disableUnderline
+            sx={{
+              padding: 1.5,
+              border: "1px solid #ccc",
+              borderRadius: 2,
+              backgroundColor: "#fff",
+              "&:focus": { borderColor: "#007bff" },
+            }}
           />
-          <button
+          <Button
+            variant="contained"
             onClick={sendMessage}
-            className="ml-2 bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center hover:bg-blue-600 transition-all duration-300"
+            disabled={loading}
+            sx={{
+              minWidth: "100px",
+              padding: "12px",
+              borderRadius: 2,
+              backgroundColor: loading ? "#ccc" : "#007bff",
+              "&:hover": { backgroundColor: "#0056b3" },
+            }}
           >
-            <Send className="mr-1" /> Send
-          </button>
-          <button
-            onClick={clearChat}
-            className="ml-2 bg-red-500 text-white px-4 py-2 rounded-lg flex items-center hover:bg-red-600 transition-all duration-300"
-          >
-            <Clear className="mr-1" /> Clear
-          </button>
-        </div>
-      </div>
-    </div>
+            {loading ? <CircularProgress size={24} color="inherit" /> : "Send"}
+          </Button>
+        </Box>
+      </Paper>
+    </Box>
   );
 };
 

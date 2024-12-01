@@ -9,13 +9,13 @@ const App = () => {
       <AnimatedBackground />
 
       {/* Chat Container */}
-      <div className="w-full max-w-4xl px-4">
+      <div className="w-full max-w-4xl px-4 lg:px-8">
         <div className="bg-white text-black shadow-2xl rounded-xl overflow-hidden">
           <header className="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 text-center">
-            <h1 className="text-2xl font-bold text-white">
+            <h1 className="text-lg lg:text-2xl font-bold text-white">
               AI Chatbot
             </h1>
-            <p className="text-sm text-indigo-200 mt-1">
+            <p className="text-xs lg:text-sm text-indigo-200 mt-1">
               Powered by OpenAI GPT-3.5 Turbo
             </p>
           </header>

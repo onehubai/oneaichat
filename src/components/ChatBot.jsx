@@ -3,7 +3,7 @@ import axios from "axios";
 import { Box, Button, Input, Paper, Typography, CircularProgress } from "@mui/material";
 import { motion } from "framer-motion";
 import Particles from "react-tsparticles";
-import { particlesOptions } from "./particlesOptions"; // separate particles config
+import { particlesOptions } from "./particlesOptions"; // particles config
 
 const ChatBot = () => {
   const [message, setMessage] = useState("");
@@ -22,13 +22,21 @@ const ChatBot = () => {
         `https://chat.onedevai.workers.dev/?prompt=${encodeURIComponent(message)}`
       );
 
-      const botReply = { type: "bot", text: response.data };
-      setChatHistory((prev) => [...prev, newMessage, botReply]);
-      setMessage(""); // Clear input
+      if (response.status === 200) {
+        const botReply = { type: "bot", text: response.data };
+        setChatHistory((prev) => [...prev, newMessage, botReply]);
+        setMessage(""); // Clear input
+      } else {
+        setChatHistory((prev) => [
+          ...prev,
+          { type: "bot", text: `Error: ${response.statusText}` },
+        ]);
+      }
     } catch (error) {
+      console.error("Error sending message:", error); // Log the error in the console
       setChatHistory((prev) => [
         ...prev,
-        { type: "bot", text: "Sorry, something went wrong." },
+        { type: "bot", text: `Sorry, something went wrong: ${error.message}` },
       ]);
     } finally {
       setLoading(false);

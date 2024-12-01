@@ -80,12 +80,15 @@ const ChatBot = () => {
   return (
     <div className="min-h-screen flex flex-col items-center bg-gradient-to-r from-blue-600 to-indigo-700">
       {/* Header */}
-      <div className="text-white text-2xl font-bold my-4">AI Chatbot</div>
+      <div className="text-white text-3xl font-bold mt-6 mb-4">AI Chatbot</div>
 
       {/* Chat Container */}
-      <div className="bg-white w-full max-w-2xl rounded-lg shadow-lg flex flex-col overflow-hidden">
+      <div className="bg-white w-full max-w-3xl rounded-lg shadow-lg flex flex-col overflow-hidden">
         {/* Chat Messages */}
-        <div className="flex-1 p-4 overflow-y-auto" style={{ height: "60vh" }}>
+        <div
+          className="flex-1 p-4 overflow-y-auto custom-scrollbar"
+          style={{ height: "65vh" }}
+        >
           {messages.map((msg, index) => (
             <motion.div
               key={index}
@@ -128,25 +131,25 @@ const ChatBot = () => {
         </div>
 
         {/* Input and Actions */}
-        <div className="flex items-center p-4 bg-gray-50 border-t">
+        <div className="flex items-center p-4 bg-gray-100 border-t">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Type your message..."
-            className="flex-1 px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-400"
+            className="flex-1 px-4 py-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-400 text-gray-700"
           />
           <button
             onClick={sendMessage}
-            className="ml-2 bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center hover:bg-blue-600"
+            className="ml-2 bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center hover:bg-blue-600 transition-all duration-300"
           >
-            <Send />
+            <Send className="mr-1" /> Send
           </button>
           <button
             onClick={clearChat}
-            className="ml-2 bg-red-500 text-white px-4 py-2 rounded-lg flex items-center hover:bg-red-600"
+            className="ml-2 bg-red-500 text-white px-4 py-2 rounded-lg flex items-center hover:bg-red-600 transition-all duration-300"
           >
-            <Clear />
+            <Clear className="mr-1" /> Clear
           </button>
         </div>
       </div>
